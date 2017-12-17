@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+from datetime import datetime, timedelta
 from peewee import *
 from wordmemo.models import db as database
 from wordmemo.models import User,Word, Deck, Card
@@ -19,6 +21,49 @@ def create_cards():
         card.word = wd
         card.save()
 
+def deck_pop(deck):
+    deck = Deck.get()
+    cards = Card.select().where(Card.dock==deck,Card.card_type==0)
+    print(cards[0].word.name)
+    print("\n e=easy,g=general,h=hard")
+    card_update(cards[0],input('your selecttion?: '))
+
+def card_update(card,action=None):
+    if action == 'e':
+        st = 7
+    elif action == 'g':
+        st = 4
+    elif action == 'h':
+        st = 1
+
+    card.state = st
+    card.due_limit = card.due_limit + timedelta(days=st)
+    card.save()
+    print("n) for next word ")
+    print("q) quit learning session")
+    action = raw_input('Choice? (nq) ').lower().strip()
+    if action == 'n':
+        deck_pop()
+    elif action == 'q':
+        main_menu()
+
+from collections import OrderedDict
+
+menu = OrderedDict([
+    ('l', deck_pop),
+   
+])
+
+def menu_loop():
+    choice = None
+    while choice != 'q':
+        for key, value in menu.items():
+            print('%s) %s' % (key, value.__doc__))
+        choice = raw_input('Action: ').lower().strip()
+        if choice in menu:
+            menu[choice]()
+
+
 def create_schedule(deck_name='new_list'):
     deck = Deck.get(name=deck_name)
     cards = Card.select().where(Card.dock==deck)
@@ -31,15 +76,6 @@ def create_schedule(deck_name='new_list'):
         print(cards[n].word.name)
         cards[n].save()
         n = n + 1
-
-
-
-count = 0
-while (count < 9):
-    print ('The count is:', count)
-    count = count + 1
- 
-print "Good bye"
 
 
 def word():

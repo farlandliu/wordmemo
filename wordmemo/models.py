@@ -47,6 +47,9 @@ class Deck(peewee.Model):
     class Meta:
         database = db
 
+    def pop(self):
+        pass
+
 class Card(peewee.Model):
     """
     Type: 0=new, 1=learning, 2=due, 4=review(when int>30), 5=bury(means finishing)
