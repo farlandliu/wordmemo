@@ -65,12 +65,15 @@ class Card(peewee.Model):
     class Meta:
         database = db
 
-# class DeckLog(peewee.Model):
-#     id = peewee.primary_key()
-#     deck = peewee.ForeignKeyField(Deck)
-#     card = peewee.ForeignKeyField(Card)
-#     update_when = peewee.DateTimeField(default=datime.now)
+class DeckLog(peewee.Model):
+    id = peewee.PrimaryKeyField()
+    deck = peewee.ForeignKeyField(Deck)
+    card = peewee.ForeignKeyField(Card)
+    card_state_before = peewee.IntegerField()
+    update_when = peewee.DateTimeField(default=datetime.now)
 
+class Meta:
+        database = db
 
 
 class Record(peewee.Model):

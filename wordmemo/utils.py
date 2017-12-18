@@ -3,7 +3,7 @@ import sys
 from datetime import datetime, timedelta
 from peewee import *
 from wordmemo.models import db as database
-from wordmemo.models import Word, Deck, Card
+from wordmemo.models import Word, Deck, Card, DeckLog
 from colorama import Fore, Back, Style
 from colorama import init   #, AnsiToWin32
 
@@ -46,16 +46,9 @@ def study_loop():
         if card:
             print(Fore.YELLOW + '   ' +card.word.name )
             print("\n 1=easy,2=general,3=hard, 4=bury, q=quit studying")
-            action = input('>>>your selecttion?: ').lower().strip()
-            card_update(card,action)
-            print("any) for next word ")
-            print("q) quit learning session")
-
-            # action = input('>>Choice? (nq) ').lower().strip()
-            #     if action == 'q':
-            #         main_menu()
-            #     else:
-            #         deck_pop()
+            action = input('>>your choice?: ').lower().strip()
+            if action != 'q':
+                card_update(card,action)
         else:
             print(Fore.RED + "No more words to study!")
             break
@@ -72,42 +65,49 @@ def deck_review():
 
 def show_deck():
     pass
+def deck_log(card):
+    deck = Deck.get()
+    log = DeckLog()
+    log.deck = deck
+    log.card = card
+    log.card_state_before = card.state
+    log.update_when = datetime.now()
+    log.save()
 
 def card_update(card,action=None):
-    if action == '1':
-        st = 4
-    elif action == '2':
-        st = 2
-    elif action == '3':
-        st = 1
+    deck_log(card)
+    state = card.state
+    if action !='4':
+        if action == '1':
+            st = 4
+        elif action == '2':
+            st = 2
+        elif action == '3':
+            st = 1
+        card.state = st
+        card.due_date = datetime.now() + timedelta(days=st)
     elif action == '4':
-        st = 30
-
-    card.state = st
-    card.due_date = datetime.now() + timedelta(days=st)
+        card.state = -1
     card.save()
- 
-
 
 from collections import OrderedDict
 
 menu = OrderedDict([
-    ('l', study_loop), 
+    ('s', study_loop), 
     ('r', deck_review),
-    ('s', show_deck),
+    ('l', show_deck),
 
 ])
 
 def main_menu():
-    print(Fore.BLUE + "  ======Main Menu=======\n")
-
-    print("  (L): learn words")
-    print("  (R): review the words learned today")
-    print("  (S): show words collections")
-    print("  (Q): quit")
-
     choice = None
     while choice != 'q':
+        print(Fore.BLUE + "  ======Main Menu=======\n")
+        print("  (S): study words")
+        print("  (R): review the words learned today")
+        print("  (L): list words collections")
+        print("  (Q): quit")
+
         # for key, value in menu.items():
         #     print('%s) %s' % (key, value.__doc__))
         choice = input('>>Action: ').lower().strip()
@@ -161,3 +161,6 @@ def fix_words(line):
         if word_piece[nn].islower() and word_piece[nn].isalpha():
             phrase += word_piece[nn] + ' '  
     return phrase
+
+if __name__ == '__main__':
+    main_menu()
