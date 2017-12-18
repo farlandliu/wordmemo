@@ -25,24 +25,24 @@ class Word(peewee.Model):
     id = peewee.PrimaryKeyField()
     name = peewee.TextField(index=True, unique=True)
     content =peewee.TextField(null=True)
-    provider = peewee.TextField(null=True)
+    source = peewee.TextField(null=True)
 
     class Meta:
         #primary_key = peewee.CompositeKey('name', 'provider')
         database = db
 
-class User(peewee.Model):
-    id = peewee.PrimaryKeyField()
-    name = peewee.TextField(unique=True)
+# class User(peewee.Model):
+#     id = peewee.PrimaryKeyField()
+#     name = peewee.TextField(unique=True)
 
-    class Meta:
-        database = db
+#     class Meta:
+#         database = db
 
 class Deck(peewee.Model):
     id = peewee.PrimaryKeyField()
     name = peewee.TextField()
-    user = peewee.ForeignKeyField(User, related_name='deck')
     update_when = peewee.DateField(default=datetime.now())
+    status = peewee.TextField(null=True)
 
     class Meta:
         database = db
@@ -58,12 +58,20 @@ class Card(peewee.Model):
     """
     id = peewee.PrimaryKeyField()
     word = peewee.ForeignKeyField(Word, related_name='from_word')
-    dock = peewee.ForeignKeyField(Deck, related_name='from_deck')
-    card_type = peewee.IntegerField(default=0)
-    limit = peewee.DateField(null=True)
+    deck = peewee.ForeignKeyField(Deck, related_name='from_deck')
+    state = peewee.IntegerField(default=0)
+    due_date = peewee.DateField(null=True)
     queue = peewee.IntegerField(null=True) # queue id for the schedule, =-1 if learning
     class Meta:
         database = db
+
+# class DeckLog(peewee.Model):
+#     id = peewee.primary_key()
+#     deck = peewee.ForeignKeyField(Deck)
+#     card = peewee.ForeignKeyField(Card)
+#     update_when = peewee.DateTimeField(default=datime.now)
+
+
 
 class Record(peewee.Model):
     '''

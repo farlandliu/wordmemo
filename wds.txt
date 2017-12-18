@@ -25,7 +25,6 @@ advance
 ass
 advancement
 advantage
-
 adversely
 advise
 advocate
@@ -204,10 +203,7 @@ concerning
 conclude
 condolence
 conduct
-
-
 confirm
-
 consecutive
 consider
 consideration
@@ -245,7 +241,6 @@ debate are
 decline
 decrease
 dedicate time and effort
-
 deduction
 detective
 delay
@@ -263,13 +258,10 @@ destination
 destroy
 detail sates
 develop
-
-
 diligently slate
 disadvantage
 disappointed
 disappointing
-
 disclose
 discontinue
 discouneous
@@ -280,7 +272,6 @@ display
 dispute
 disrupt
 dissentingly gilt
-
 distinctly
 distinguish oneself
 distribute
@@ -376,15 +367,12 @@ figure out
 file for bankruptcy
 fill in
 financial
-
 firm
 flamboyant
-
 attendant
 focus on
 following imam
 for further information
-
 foresight
 t formulate
 fortune
@@ -428,7 +416,6 @@ hand out
 handicapped
 handle
 hardly
-
 stem
 hardship
 have a further discussion
@@ -487,7 +474,6 @@ inconvenience
 incorrectly
 increase
 incumbent
-
 independent
 indicate
 indication
@@ -544,7 +530,6 @@ keep in mind
 keep records of
 ggi
 keynote speaker
-
 lack
 lag on
 land a job
@@ -552,7 +537,6 @@ landmark
 last minute
 late fee
 launch
-
 leading
 lease
 leave
@@ -560,7 +544,6 @@ legal action
 legal officer
 legislation
 let alone
-
 letter of recommendation
 licensed
 lift
@@ -611,10 +594,6 @@ money order
 multiple
 multitude
 mutually
-l
-l
-l
-x
 nearly
 j necessarily
 t need
@@ -667,7 +646,6 @@ patron
 pay as
 payable
 paycheck
-
 pedestrian
 penetrate
 pension
@@ -691,7 +669,6 @@ predict
 prefer
 preference
 preliminary
-
 premature
 press conference
 prestigious
@@ -718,7 +695,6 @@ profitable
 prohibit
 production procedure
 ee
-
 promising
 promote
 property teat
@@ -814,7 +790,6 @@ revitalize
 revive
 reward
 routine
-
 run out of
 safety equipment
 safety guidelines
@@ -864,7 +839,6 @@ stock
 strategic plan
 streamline
 strengthen
-
 strike
 stringent
 subordinate
@@ -897,7 +871,6 @@ throughout
 to name just a few
 toll free
 traffic congestion
-
 transportation cost
 treat
 triple
@@ -927,7 +900,6 @@ warranty
 waste
 wealth iii
 weigh we
-a
 vacant
 validity
 valuable
@@ -945,7 +917,6 @@ whether
 widespread
 withdrawal
 workplace
-g
 worthwhile
 wrap up
 written authorization
