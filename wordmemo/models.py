@@ -76,41 +76,10 @@ class Meta:
         database = db
 
 
-class Record(peewee.Model):
-    '''
-    # This model schema is from zdict.
-    A model for storing the query results into the SQLite db.
-
-    :param word: the vocabulary
-    :param content: the query result of the vocabulary.
-        It's a json document has the following spec.
-        {
-            'word': word,
-            // storing the querying result.
-            'pronounce': [
-                ('key', 'value'),
-                ...
-            ],
-            'sound': [
-                ('type', 'url'),
-                ...
-                // type: (mp3|ogg)
-            ],
-            'explain': [
-                ('speech',
-                    (
-                        'meaning',
-                        ('sentence1', 'translation'),
-                        ...
-                    ),
-                    ...
-                ),
-                ...
-            ]
-        }
-    :param source: source of the content. May be Yahoo!, Google, ... Dict
-    '''
-
+class WordLib(peewee.Model):
+    """
+    store vocabularies queried online
+    """
     word = peewee.TextField()
     content = peewee.TextField()
     source = peewee.CharField()
@@ -118,3 +87,5 @@ class Record(peewee.Model):
     class Meta:
         database = db
         primary_key = peewee.CompositeKey('word', 'source')
+
+

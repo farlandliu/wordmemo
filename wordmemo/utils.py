@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 from datetime import datetime, timedelta
-from peewee import *
 from wordmemo.models import db as database
 from wordmemo.models import Word, Deck, Card, DeckLog
 from colorama import Fore, Back, Style
@@ -14,6 +13,7 @@ init:
 2. init_deck_card()
 
 """
+# ====init app====
 def create_tables():
     database.connect()
     database.create_tables([Word, Deck,Card])
@@ -38,6 +38,37 @@ def create_cards():
         card.word = wd
         card.save()
 
+def word():
+    words_list = []
+    f = open('wds.txt','r')
+    words_text = f.readlines()
+    for line in words_text:
+        # word = fix_words(line)
+        if line:
+            wd = Word.get_or_create(name=line.replace('\n',''))
+            wd[0].save()
+    return words_list
+
+"""
+1. isalpha() & islower()
+
+"""
+
+def fix_words(line):
+    # import pdb; pdb.set_trace() 
+    
+    if len(line) < 2:
+        return ''
+    word_piece = line.split()
+    # print word_piece
+    # print len(word_piece)
+    phrase = ''
+    for nn in range(0,len(word_piece)):
+        if word_piece[nn].islower() and word_piece[nn].isalpha():
+            phrase += word_piece[nn] + ' '  
+    return phrase
+
+# ====main command app====
 def study_loop():
     print(Fore.BLUE + "  ======Studying=======\n")
     action = ""
@@ -65,6 +96,7 @@ def deck_review():
 
 def show_deck():
     pass
+
 def deck_log(card):
     deck = Deck.get()
     log = DeckLog()
@@ -117,50 +149,6 @@ def main_menu():
         elif choice == 'q':
             sys.exit(1)
 
-
-def create_schedule(deck_name='new_list'):
-    deck = Deck.get(name=deck_name)
-    cards = Card.select().where(Card.dock==deck)
-    # initial schedule
-    # normal order or random order
-    n = 1
-    num = cards.count()
-    while (n < num):
-        cards[n].queue = n
-        print(cards[n].word.name)
-        cards[n].save()
-        n = n + 1
-
-
-def word():
-    words_list = []
-    f = open('wds.txt','r')
-    words_text = f.readlines()
-    for line in words_text:
-        # word = fix_words(line)
-        if line:
-            wd = Word.get_or_create(name=line.replace('\n',''))
-            wd[0].save()
-    return words_list
-
-"""
-1. isalpha() & islower()
-
-"""
-
-def fix_words(line):
-    # import pdb; pdb.set_trace() 
-    
-    if len(line) < 2:
-        return ''
-    word_piece = line.split()
-    # print word_piece
-    # print len(word_piece)
-    phrase = ''
-    for nn in range(0,len(word_piece)):
-        if word_piece[nn].islower() and word_piece[nn].isalpha():
-            phrase += word_piece[nn] + ' '  
-    return phrase
 
 if __name__ == '__main__':
     main_menu()

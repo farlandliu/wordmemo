@@ -16,15 +16,19 @@ init(autoreset=True)
 
 def wd(word):
     wd_dict ={
-    'word':word,
+    'word':'',
     'cob': '',
     }
-   
+    headers = {'user-agent':"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0"}   
     url = 'https://www.collinsdictionary.com/dictionary/english/' + word
-    request = urllib2.Request(url)
-    request.add_header('User-Agent', 'Mozilla/5.0 (Linux; U; Android 4.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1')
-    res = urllib2.urlopen(request,timeout=10)    
-    content = res.read().decode('utf-8')   
+    try:
+            res = requests.get(
+                url, timeout=10, headers=headers
+            )
+        except requests.exceptions.ReadTimeout as e:
+            raise exceptions.TimeoutError()
+   
+    content = res.text  
     root = BeautifulSoup(content,  "html.parser")
 
     dicts = root.find("div", class_="dictionary")
