@@ -6,21 +6,40 @@ import requests
 from bs4 import BeautifulSoup
 from colorama import init   #, AnsiToWin32
 from colorama import Fore, Back, Style
-from wordmemo.models import db, WordLib
+from models import db, WordLib
 init(autoreset=True)
 
 class Dict(object):
     """docstring for Dict"""
-    def __init__(self, arg):
+    def __init__(self, disable_cache):
         super(Dict, self).__init__()
-        self.arg = arg
+        self.disable_cache = disable_cache
         self.db = db
         self.api = ''
         self.provider = ''
         self.title = ''
 
-    def show(self):
-        pass
+    def show(self, db_cache: WordLib):
+        content = json.loads(db_cache.content)
+        print (Style.DIM + self.title + '.'*3)
+
+        # print word ,pronounce
+        print(Fore.RED + content['word'])
+        print(content['pronounce'])
+        # print explain
+        main_explanations = content.get('explain', [])
+        
+        # explain = ['word forms',[sense1, sense2]]
+        # sense = [grammar, sen1 ,sen2]
+        print(main_explanations[0])
+
+        for speech in main_explanations[1]:
+            # print word forms
+            print(Fore.BLUE + speech[0])
+            # print sense items
+            for meaning in speech[1:]:
+                print('  ' + meaning)
+            # print()
 
     def _get_raw(self, word: str) -> str:
         headers = {'user-agent':"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0"}
@@ -65,38 +84,28 @@ class Dict(object):
 
         # if self.args.show_url:
         #     self.show_url(word)
-
-        # if not self.args.disable_db_cache:
-        record = self.query_db_cache(word)
-
-        if record:
-            self.show(record)
-            return
-
+        if not self.disable_cache:
+            record = self.query_db_cache(word)
+            if record:
+                self.show(record)
+                return
         try:
             record = self.query(word)
-        except error as e:
-            print(e)
-        # except exceptions.TimeoutError as e:
-        #     self.color.print(e, 'red')
-        #     print()
-        # except exceptions.NotFoundError as e:
-        #     self.color.print(e, 'yellow')
-        #     print()
+
+        except :
+            print('error')
         else:
             self.save(record, word)
             self.show(record)
             return
 
 class Collins(Dict):
-    """Bing  online query"""
-    def __init__(self,arg):
-        super(Collins, self).__init__(arg)
-        self.arg = arg
+    """Collins online query"""
+    def __init__(self,disable_cache):
+        super(Collins, self).__init__(disable_cache)
         self.api = 'https://www.collinsdictionary.com/dictionary/english/{word}'
         self.provider = 'cobu'
         self.title = 'Collins Cobuild Ads Dictionary'
-
 
     def _get_url(self, word) -> str:
         return self.api.format(word=word)
@@ -124,10 +133,8 @@ class Collins(Dict):
                 
                 for sentence in meaning[1:]:
                     if sentence:
-                        print(' ' * 2, end='')
-                        for i, s in enumerate(sentence.split('*')):
-                            print(Fore.BLUE + s)
-            print()
+                        print( '  ' +Fore.BLUE + sentence)
+            # print()
 
     def query(self, word: str):
         webpage = self._get_raw(word)
@@ -187,7 +194,6 @@ class Collins(Dict):
                 sen_grm = sen_grm.text if sen_grm else ' '
                 sen_def_list = item.find_all('div', class_='def')
                 sen_defs = ''   # store the definitaion
-                # import pdb;pdb.set_trace()
                 for sen_def in sen_def_list:
                     sen_defs += sen_def.text.replace('\n', '')
                 sense_item.append(sen_num + sen_grm + '\n' + sen_defs)
@@ -195,7 +201,7 @@ class Collins(Dict):
                 examples = item.find_all('div', class_='cit type-example')
                 if examples:
                     for ex in examples:
-                        sen_examples.append(ex.text + '\n')
+                        sen_examples.append(ex.text)
                     sense_item.append(sen_examples)
             else:
                 sen_num = item.find('span', class_='span sensenum')
@@ -213,9 +219,84 @@ class Collins(Dict):
         return result
 
 class Bing(Dict):
-    """Bing  online query"""
-    def __init__(self, arg):
-        super(ClassName, self).__init__()
-        self.arg = arg
-        self.url = 'https://www.collinsdictionary.com/dictionary/english/{word}'
+    """Bing Dcitionary online query"""
+    def __init__(self, disable_cache):
+        super(Bing, self).__init__(disable_cache)
+        self.api = 'https://www.bing.com/dict/search?q={word}'
+        self.provider = 'Bing'
+        self.title = 'Bing Dictionary'
+
+    def _get_url(self, word) -> str:
+        return self.api.format(word=word)
+
+    # def show(self, db_cache: WordLib):
+    #     content = json.loads(db_cache.content)
+
+    def query(self, word: str):
+        webpage = self._get_raw(word)
+        data_root = BeautifulSoup(webpage, "html.parser")
+        #['word','pron','explain']
+        # explain = ['word forms',[sense1, sense2]]
+        # sense = [grammar, example1,examle2]
+        content = {}
+        # head word
+        head_word = data_root.find('div', id='headword')
+        if head_word:
+            content['word'] = head_word.text
+        else:
+            raise NotFoundError(word)
+        # handle pron hd_p1_1
+        pron = data_root.find("div", class_="hd_p1_1")
+
+        if pron:
+            content['pronounce'] = pron.text 
+        else :
+            content['pronounce'] =''
+
+        content['explain'] = [] # thes,[sen1],[sens2]
+        thesaurus = data_root.find("div", id="thesaurusesid") #hd_if
+        thesaurus = data_root.find("div", class_='hd_if')
+        if thesaurus:
+            content['explain'].append(thesaurus.text)
+        else:
+            content['explain'].append('')
+        sense_list = []
+        sen_parts = data_root.find("div",id="authid").find_all('div',class_='each_seg')
+        for sen_item in sen_parts:
+            sen = []
+            sen.append(sen_item.find('div', class_='pos_lin').text)
+            meanings = sen_item.find_all('div', class_='se_lis')
+            for meaning in meanings:
+                en_tag = meaning.find('span', class_='val')
+                t = en_tag.extract()
+                sen.append(meaning.text + '\n'+ ' '*4 + t.text)
+            sense_list.append(sen)
+
+        content['explain'].append(sense_list)
+
+        result = WordLib(
+            word=word,
+            content=json.dumps(content),
+            source=self.provider,
+        )
+        return result
+
+dict_choice = ['bing', 'collins']
+
+@click.command()
+@click.option('-d', '--disable_cache', is_flag=True, default=False, help='disable cache')
+@click.option('-s', '--select_dict', type=click.Choice(dict_choice), help='select dictionary')
+@click.argument('word')
+def cli(word,disable_cache, select_dict):
+    if select_dict == dict_choice[0]:
+        wd=Bing(disable_cache)
+    
+    elif select_dict == dict_choice[1]:
+        wd = Collins(disable_cache)
+    wd.lookup(word)
+
+
+if __name__ == '__main__':
+    cli()
+
         
