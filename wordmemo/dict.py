@@ -3,15 +3,16 @@ import os, sys
 import click
 import json
 import requests
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from colorama import init   #, AnsiToWin32
 from colorama import Fore, Back, Style
-from models import db, WordLib
+from wordmemo.models import db, WordLib, Card, Word, Deck
 init(autoreset=True)
 
 class Dict(object):
     """docstring for Dict"""
-    def __init__(self, disable_cache):
+    def __init__(self, disable_cache=False):
         super(Dict, self).__init__()
         self.disable_cache = disable_cache
         self.db = db
@@ -220,7 +221,7 @@ class Collins(Dict):
 
 class Bing(Dict):
     """Bing Dcitionary online query"""
-    def __init__(self, disable_cache):
+    def __init__(self, disable_cache=False):
         super(Bing, self).__init__(disable_cache)
         self.api = 'https://www.bing.com/dict/search?q={word}'
         self.provider = 'Bing'
@@ -286,15 +287,28 @@ dict_choice = ['bing', 'collins']
 @click.command()
 @click.option('-d', '--disable_cache', is_flag=True, default=False, help='disable cache')
 @click.option('-s', '--select_dict', type=click.Choice(dict_choice), help='select dictionary')
+@click.option('-a', '--add_to_deck', is_flag=True,  help='add word to deck')
 @click.argument('word')
-def cli(word,disable_cache, select_dict):
-    if select_dict == dict_choice[0]:
-        wd=Bing(disable_cache)
+def cli(word,disable_cache, select_dict, add_to_deck):
+    default_deck = Deck.get()
+    if not select_dict: select_dict = dict_choice[1]
+    if word and add_to_deck:
+        wd = Word.get_or_create(name=word)[0]
+        card = Card()
+        card.word = wd
+        card.deck = default_deck
+        card.due_date = datetime.now() + timedelta(days=2)
+        card.save()
+        print(word + ' is added to deck: ' + default_deck.name)
+        return 
+    elif word  and select_dict:
+        if select_dict == dict_choice[0]:
+            wd=Bing(disable_cache)
     
-    elif select_dict == dict_choice[1]:
-        wd = Collins(disable_cache)
-    wd.lookup(word)
-
+        elif select_dict == dict_choice[1]:
+            wd = Collins(disable_cache)
+        wd.lookup(word)
+        
 
 if __name__ == '__main__':
     cli()

@@ -44,8 +44,8 @@ setup(
 
     entry_points={
         'console_scripts':[
-            'bing = pyDict.bing:cli',
-            'col = pyDict.col:cli',
+            'wd = wordmemo.utils:cli',
+            'dict = wordmemo.dict:cli',
         ]
      },
      classifiers=[

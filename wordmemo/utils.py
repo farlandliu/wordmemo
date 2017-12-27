@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 import sys
 from datetime import datetime, timedelta
-from wordmemo.models import db as database
-from wordmemo.models import Word, Deck, Card, DeckLog
+import click
 from colorama import Fore, Back, Style
 from colorama import init   #, AnsiToWin32
+from wordmemo.models import db as database
+from wordmemo.dict import Bing, Collins
+from wordmemo.models import Word, Deck, Card, DeckLog
 
+bing = Bing(False)
+collins = Collins(False)
 init(autoreset=True)
+global default_deck
+default_deck = Deck.get()
 """
 init:
 1. create_tables, word()
@@ -14,6 +20,7 @@ init:
 
 """
 # ====init app====
+
 def create_tables():
     database.connect()
     database.create_tables([Word, Deck,Card])
@@ -70,37 +77,71 @@ def fix_words(line):
 
 # ====main command app====
 def study_loop():
-    print(Fore.BLUE + "  ======Studying=======\n")
+    print(Fore.BLUE + "  ======Study=======\n")
+    deck_today()
     action = ""
     while action !="q":
         card = deck_pop()
         if card:
             print(Fore.YELLOW + '   ' +card.word.name )
-            print("\n 1=easy,2=general,3=hard, 4=bury, q=quit studying")
-            action = input('>>your choice?: ').lower().strip()
-            if action != 'q':
-                card_update(card,action)
+            print("\n 1=easy,2=general,3=hard, 4=bury, q=quit b=Bing c=Collins")
+            action = input('>>: ').lower().strip()
+            if action == 'b':
+                bing.lookup(card.word.name)
+                print('*** End of Explaination ***')
+            elif action == 'c':
+                collins.lookup(card.word.name)
+                print('*** End of Explaination ***')
+            elif action != 'q':
+                card_update(card,action)           
+
         else:
             print(Fore.RED + "No more words to study!")
             break
 
 
 def deck_pop():
-    deck = Deck.get()
-    cards = Card.select().where(Card.deck==deck,Card.state==0)
+    global default_deck
+    cards = Card.select().where(Card.deck==default_deck,Card.state==0)
+    cards_review_today = Card.select().where(Card.due_date <= datetime.now().date())
+    if cards_review_today:
+        return cards_review_today[0]
     if cards:
         return cards[0]
+        
+def deck_today():
+    global default_deck
+    new_words = Card.select(Card.deck==default_deck, Card.state==0)
+    print('New Words to Learn: ' + str(new_words.count()))
+    words_review_today = Card.select().where(Card.due_date <= datetime.now().date())
+    print('words to Review: ' + str(words_review_today.count()))
 
 def deck_review():
     pass
 
-def show_deck():
-    pass
+def deck_select():
+    """select default deck or create a new deck """
+    global default_deck
+    decks = Deck.select()
+    id_list = []
+    for deck in decks:
+        print(str(deck.id) + '. ' + deck.name)
+        id_list.append(str(deck.id))
+    raw_input = input('select deck id or intput deck name to create new deck:\n >>').lower().strip()
+    if raw_input in id_list :
+        default_deck = Deck.get(Deck.id==int(raw_input))
+        print('default deck is set to : %s'%default_deck.name)
+    elif len(raw_input) > 1:
+        default_deck = Deck(name=raw_input)
+        default_deck.save()
+        print('new deck created: %s'%default_deck.name)
+        print('default deck is set to : %s'%default_deck.name)
+
 
 def deck_log(card):
-    deck = Deck.get()
+    global default_deck
     log = DeckLog()
-    log.deck = deck
+    log.deck = default_deck
     log.card = card
     log.card_state_before = card.state
     log.update_when = datetime.now()
@@ -125,16 +166,20 @@ def card_update(card,action=None):
 from collections import OrderedDict
 
 menu = OrderedDict([
+    ('d', deck_select),
     ('s', study_loop), 
     ('r', deck_review),
-    ('l', show_deck),
+    # ('l', show_deck),
 
 ])
 
 def main_menu():
+    global default_deck
+    default_deck = Deck.get()
     choice = None
     while choice != 'q':
         print(Fore.BLUE + "  ======Main Menu=======\n")
+        print("  (D): select deck. current deck: %s"%default_deck.name )        
         print("  (S): study words")
         print("  (R): review the words learned today")
         print("  (L): list words collections")
@@ -149,6 +194,16 @@ def main_menu():
         elif choice == 'q':
             sys.exit(1)
 
+@click.command(name='add')
+@click.argument('word')
+def word_add(word):
+    pass
 
-if __name__ == '__main__':
+
+def cli():
+    global default_deck
+    default_deck = Deck.get()
     main_menu()
+
+if __name__ == '__main__':    
+    cli()

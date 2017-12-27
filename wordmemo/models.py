@@ -75,9 +75,8 @@ class DeckLog(peewee.Model):
     card_state_before = peewee.IntegerField()
     update_when = peewee.DateTimeField(default=datetime.now)
 
-class Meta:
+    class Meta:
         database = db
-
 
 class WordLib(peewee.Model):
     """
@@ -86,6 +85,7 @@ class WordLib(peewee.Model):
     word = peewee.TextField()
     content = peewee.TextField()
     source = peewee.CharField()
+    update_when = peewee.DateTimeField(default=datetime.now)
 
     class Meta:
         database = db
