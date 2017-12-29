@@ -32,7 +32,7 @@ def init_deck_cards(deck_name='default'):
     for wd in words:
         card = Card(
             deck=deck[0],
-            word=wd, 
+            word=wd,
             state=0)
         card.save()
 
@@ -62,8 +62,8 @@ def word():
 """
 
 def fix_words(line):
-    # import pdb; pdb.set_trace() 
-    
+    # import pdb; pdb.set_trace()
+
     if len(line) < 2:
         return ''
     word_piece = line.split()
@@ -72,7 +72,7 @@ def fix_words(line):
     phrase = ''
     for nn in range(0,len(word_piece)):
         if word_piece[nn].islower() and word_piece[nn].isalpha():
-            phrase += word_piece[nn] + ' '  
+            phrase += word_piece[nn] + ' '
     return phrase
 
 # ====main command app====
@@ -92,8 +92,8 @@ def study_loop():
             elif action == 'c':
                 collins.lookup(card.word.name)
                 print('*** End of Explaination ***')
-            elif action != 'q':
-                card_update(card,action)           
+            else:
+                card_update(card,action)
 
         else:
             print(Fore.RED + "No more words to study!")
@@ -108,7 +108,7 @@ def deck_pop():
         return cards_review_today[0]
     if cards:
         return cards[0]
-        
+
 def deck_today():
     global default_deck
     new_words = Card.select(Card.deck==default_deck, Card.state==0)
@@ -150,7 +150,7 @@ def deck_log(card):
 def card_update(card,action=None):
     deck_log(card)
     state = card.state
-    if action !='4':
+    if action != '4':
         if action == '1':
             st = 4
         elif action == '2':
@@ -161,13 +161,14 @@ def card_update(card,action=None):
         card.due_date = datetime.now() + timedelta(days=st)
     elif action == '4':
         card.state = -1
+        card.due_date = None
     card.save()
 
 from collections import OrderedDict
 
 menu = OrderedDict([
     ('d', deck_select),
-    ('s', study_loop), 
+    ('s', study_loop),
     ('r', deck_review),
     # ('l', show_deck),
 
@@ -179,7 +180,7 @@ def main_menu():
     choice = None
     while choice != 'q':
         print(Fore.BLUE + "  ======Main Menu=======\n")
-        print("  (D): select deck. current deck: %s"%default_deck.name )        
+        print("  (D): select deck. current deck: %s"%default_deck.name )
         print("  (S): study words")
         print("  (R): review the words learned today")
         print("  (L): list words collections")
@@ -205,5 +206,5 @@ def cli():
     default_deck = Deck.get()
     main_menu()
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     cli()
