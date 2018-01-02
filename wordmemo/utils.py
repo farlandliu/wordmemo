@@ -111,6 +111,8 @@ def deck_pop():
 
 def deck_today():
     global default_deck
+    print('----deck-today: ' + default_deck.name)
+
     new_words = Card.select(Card.deck==default_deck, Card.state==0)
     print('New Words to Learn: ' + str(new_words.count()))
     words_review_today = Card.select().where(Card.due_date <= datetime.now().date())
@@ -177,6 +179,7 @@ menu = OrderedDict([
 def main_menu():
     global default_deck
     default_deck = Deck.get()
+    print('----deck: ' + default_deck.name)
     choice = None
     while choice != 'q':
         print(Fore.BLUE + "  ======Main Menu=======\n")

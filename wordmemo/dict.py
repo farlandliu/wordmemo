@@ -290,16 +290,23 @@ dict_choice = ['bing', 'collins']
 @click.option('-a', '--add_to_deck', is_flag=True,  help='add word to deck')
 @click.argument('word')
 def cli(word,disable_cache, select_dict, add_to_deck):
-    default_deck = Deck.get()
+    default_deck = Deck.select().where(Deck.name=='default').get()
     if not select_dict: select_dict = dict_choice[1]
     if word and add_to_deck:
         wd = Word.get_or_create(name=word)[0]
-        card = Card()
-        card.word = wd
-        card.deck = default_deck
-        card.due_date = datetime.now() + timedelta(days=2)
-        card.save()
-        print(word + ' is added to deck: ' + default_deck.name)
+        card = Card.select().join(Word).where(
+            Word.name==word
+            ).join(Deck,on=(Card.deck==default_deck))
+        # (Card.word==word,Card.deck==default_deck)
+        if card:
+            print(wd.name + ' already exists!')
+        else:
+            card = Card()
+            card.word = wd
+            card.deck = default_deck
+            card.due_date = datetime.now() + timedelta(days=2)
+            card.save()
+            print(word + ' is added to deck: ' + default_deck.name)
         return 
     elif word  and select_dict:
         if select_dict == dict_choice[0]:
