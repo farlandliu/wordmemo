@@ -92,6 +92,8 @@ def study_loop():
             elif action == 'c':
                 collins.lookup(card.word.name)
                 print('*** End of Explaination ***')
+            elif action == 'q':
+                return
             else:
                 card_update(card,action)
 
@@ -102,8 +104,10 @@ def study_loop():
 
 def deck_pop():
     global default_deck
-    cards = Card.select().where(Card.deck==default_deck,Card.state==0)
-    cards_review_today = Card.select().where(Card.due_date <= datetime.now().date())
+    cards = Card.select().where(Card.state==0).join(Deck).where(Deck.name==default_deck.name)
+    cards_review_today = Card.select().join(Deck).where(
+        Deck.name==default_deck.name,
+        Card.due_date <= datetime.now().date())
     if cards_review_today:
         return cards_review_today[0]
     if cards:
@@ -112,10 +116,12 @@ def deck_pop():
 def deck_today():
     global default_deck
     print('----deck-today: ' + default_deck.name)
-
-    new_words = Card.select(Card.deck==default_deck, Card.state==0)
+    import pdb;pdb.set_trace()
+    new_words = Card.select().join(Deck).where(Deck.name==default_deck.name, Card.state==0)
     print('New Words to Learn: ' + str(new_words.count()))
-    words_review_today = Card.select().where(Card.due_date <= datetime.now().date())
+    words_review_today = Card.select().join(Deck).where(
+        Deck.name==default_deck.name,
+        Card.due_date <= datetime.now().date())
     print('words to Review: ' + str(words_review_today.count()))
 
 def deck_review():
