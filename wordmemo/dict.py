@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from colorama import init   #, AnsiToWin32
 from colorama import Fore, Back, Style
 from wordmemo.models import db, WordLib, Card, Word, Deck
+from wordmemo import __version__
 init(autoreset=True)
 
 class Dict(object):
@@ -113,7 +114,7 @@ class Collins(Dict):
 
     def show(self, db_cache: WordLib):
         content = json.loads(db_cache.content)
-
+        print (Style.DIM + self.title + '.'*3)
         # print word ,pronounce
         print(Fore.RED + content['word']+ content['pronounce'])
 
@@ -285,13 +286,20 @@ class Bing(Dict):
 dict_choice = ['bing', 'collins']
 
 @click.command()
-@click.option('-d', '--disable_cache', is_flag=True, default=False, help='disable cache')
-@click.option('-s', '--select_dict', type=click.Choice(dict_choice), help='select dictionary')
-@click.option('-a', '--add_to_deck', is_flag=True,  help='add word to deck')
+@click.version_option(__version__, '-v', '--version')
+@click.option('-d', '--disable_cache', is_flag=True, default=False, help="disable cache")
+@click.option('-c', '--collins', is_flag=True, default=True, help="use Collins online dictionary")
+@click.option('-b', '--bing', is_flag=True, default=False, help="use Bing online dictionary")
+# @click.option('-s', '--select_dict', type=click.Choice(dict_choice), help="select online dictionary source")
+@click.option('-a', '--add_to_deck', is_flag=True,  help="add word to default deck")
 @click.argument('word')
-def cli(word,disable_cache, select_dict, add_to_deck):
-    default_deck = Deck.select().where(Deck.name=='default').get()
-    if not select_dict: select_dict = dict_choice[1]
+# @common_options
+def cli(word,disable_cache, add_to_deck, bing, collins):
+
+    if bing:collins=False
+    if not collins and not bing: collins=True
+    default_deck = Deck.get(Deck.name=='default')
+    # if not select_dict: select_dict = dict_choice[1]
     if word and add_to_deck:
         wd = Word.get_or_create(name=word)[0]
         card = Card.select().join(Word).where(
@@ -308,11 +316,11 @@ def cli(word,disable_cache, select_dict, add_to_deck):
             card.save()
             print(word + ' is added to deck: ' + default_deck.name)
         return 
-    elif word  and select_dict:
-        if select_dict == dict_choice[0]:
+    elif word :
+        if bing:
             wd=Bing(disable_cache)
     
-        elif select_dict == dict_choice[1]:
+        elif collins:
             wd = Collins(disable_cache)
         wd.lookup(word)
         

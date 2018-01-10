@@ -7,10 +7,10 @@ from datetime import datetime
 
 
 BASE_DIR_NAME = 'wordmemo'
-#BASE_DIR = os.path.join(os.getenv('HOME'), BASE_DIR_NAME)
-BASE_DIR = os.path.split(os.path.realpath(__file__))[0]
-DB_NAME = 'word.db'
-DB_FILE = os.path.join(BASE_DIR, DB_NAME)
+HOME_DIR = os.getenv('HOME')
+#BASE_DIR = os.path.split(os.path.realpath(__file__))[0]
+DB_NAME = '.word.db'
+DB_FILE = os.path.join(HOME_DIR, DB_NAME)
 db = peewee.SqliteDatabase(DB_FILE)
 # db = peewee.SqliteDatabase(DB_NAME)
 

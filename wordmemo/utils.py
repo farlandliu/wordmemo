@@ -7,12 +7,13 @@ from colorama import init   #, AnsiToWin32
 from wordmemo.models import db as database
 from wordmemo.dict import Bing, Collins
 from wordmemo.models import Word, Deck, Card, DeckLog
+from collections import OrderedDict
 
 bing = Bing(False)
 collins = Collins(False)
 init(autoreset=True)
 global default_deck
-default_deck = Deck.get()
+
 """
 init:
 1. create_tables, word()
@@ -63,7 +64,6 @@ def word():
 
 def fix_words(line):
     # import pdb; pdb.set_trace()
-
     if len(line) < 2:
         return ''
     word_piece = line.split()
@@ -77,14 +77,17 @@ def fix_words(line):
 
 # ====main command app====
 def study_loop():
-    print(Fore.BLUE + "  ======Study=======\n")
-    deck_today()
+    print(Fore.BLUE + " ======Studying=======")
+    # new_words, review_words = deck_today()
     action = ""
     while action !="q":
+        deck_today()
         card = deck_pop()
         if card:
             print(Fore.YELLOW + '   ' +card.word.name )
-            print("\n 1=easy,2=general,3=hard, 4=bury, q=quit b=Bing c=Collins")
+            print('-------------------')          
+            print("1=easy,2=general,3=hard, 4=bury")
+            print("q=Quit b=Bing c=Collins")
             action = input('>>: ').lower().strip()
             if action == 'b':
                 bing.lookup(card.word.name)
@@ -94,7 +97,7 @@ def study_loop():
                 print('*** End of Explaination ***')
             elif action == 'q':
                 return
-            else:
+            elif action in ['1', '2' ,'3', '4']:
                 card_update(card,action)
 
         else:
@@ -115,14 +118,13 @@ def deck_pop():
 
 def deck_today():
     global default_deck
-    print('----deck-today: ' + default_deck.name)
-    import pdb;pdb.set_trace()
     new_words = Card.select().join(Deck).where(Deck.name==default_deck.name, Card.state==0)
-    print('New Words to Learn: ' + str(new_words.count()))
+    # print('New Words : ' + str(new_words.count()))
     words_review_today = Card.select().join(Deck).where(
         Deck.name==default_deck.name,
         Card.due_date <= datetime.now().date())
-    print('words to Review: ' + str(words_review_today.count()))
+    print('New: ' + str(new_words.count()) + ' | Review: ' + str(words_review_today.count()))
+    return new_words.count(),words_review_today.count()
 
 def deck_review():
     pass
@@ -138,7 +140,7 @@ def deck_select():
     raw_input = input('select deck id or intput deck name to create new deck:\n >>').lower().strip()
     if raw_input in id_list :
         default_deck = Deck.get(Deck.id==int(raw_input))
-        print('default deck is set to : %s'%default_deck.name)
+        print(Fore.YELLOW + 'current deck is set to : %s'%default_deck.name)
     elif len(raw_input) > 1:
         default_deck = Deck(name=raw_input)
         default_deck.save()
@@ -171,24 +173,25 @@ def card_update(card,action=None):
         card.state = -1
         card.due_date = None
     card.save()
-
-from collections import OrderedDict
+def show_deck():
+    decks = Deck.select()
+    print(' Deck List:')
+    for dd in decks:
+        words_of_deck = Card.select().join(Deck).where(Deck.name==dd.name)
+        print('  ' + dd.name + ': words ' + Fore.RED +str(words_of_deck.count()))
 
 menu = OrderedDict([
     ('d', deck_select),
     ('s', study_loop),
     ('r', deck_review),
-    # ('l', show_deck),
-
+    ('l', show_deck),
 ])
 
 def main_menu():
     global default_deck
-    default_deck = Deck.get()
-    print('----deck: ' + default_deck.name)
     choice = None
     while choice != 'q':
-        print(Fore.BLUE + "  ======Main Menu=======\n")
+        print(Fore.BLUE + "  ======Main Menu=======")
         print("  (D): select deck. current deck: %s"%default_deck.name )
         print("  (S): study words")
         print("  (R): review the words learned today")
@@ -212,7 +215,7 @@ def word_add(word):
 
 def cli():
     global default_deck
-    default_deck = Deck.get()
+    default_deck = Deck.get(Deck.name=='default')
     main_menu()
 
 if __name__ == '__main__':
